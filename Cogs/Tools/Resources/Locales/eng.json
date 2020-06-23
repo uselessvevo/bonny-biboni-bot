@@ -1,0 +1,14 @@
+{
+    "Access denied":"Access denied",
+    "Done. Prefix is: **{prefix}**":"Done. Prefix is: **{prefix}**",
+    "Done. Locale is: **{locale}**":"Done. Locale is: **{locale}**",
+    "Rebooting":"Rebooting",
+    "Module was rebooted - `{module}`":"Module was rebooted - `{module}`",
+    "Module doesn\t exist - `{module}`":"Module doesn\t exist - `{module}`",
+    "Failed to reboot module - `{module}`":"Failed to reboot module - `{module}`",
+    "The best bot in the world":"The best bot in the world",
+    "Author":"Author",
+    "Commands":"Commands",
+    "Message from your good friend - useless_vevo":"Message from your good friend - useless_vevo",
+    "Status set to **{status_name}**":"Status set to **{status_name}**"
+}

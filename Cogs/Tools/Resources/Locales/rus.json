@@ -1,0 +1,14 @@
+{
+    "Access denied": "Доступ закрыт",
+    "Done. Prefix is: **{prefix}**": "Готово. Префикс: **{prefix}**",
+    "Done. Locale is: **{locale}**": "Готово. Язык установлен на **{locale}**",
+    "Rebooting": "ｒｅｓｔａｒｔ　憶ュギ",
+    "Module was rebooted - `{module}`": "Модуль был успешно перезагружен - `{module}`",
+    "Module doesn't exist - `{module}`": "Модуль не существует - `{module}`",
+    "Failed to reboot module - `{module}`": "Не удалось перезагрузить модуль - `{module}`",
+    "The best bot in the world": "Лучший бот во всём мире",
+    "Author": "Автор",
+    "Commands": "Команды",
+    "Message from your good friend - useless_vevo": "Сообщение от ващего лучшего друга - useless_vevo",
+    "Status set to **{status_name}**": "Статус устатонвлен на **{status_name}**"
+}

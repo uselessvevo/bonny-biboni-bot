@@ -1,0 +1,12 @@
+{
+    "Text": "Текст",
+    "File": "Файл",
+    "Message": "Сообщение",
+    "Author": "Автор",
+    "Command": "Команда",
+    "Error": "Ошибка",
+    "Please, wait {member}": "Пожалуйста, подождите, {member}",
+    "Invalid input in {arg}": "Неправильный ввод в {arg}",
+    "Bad command argument in {arg}": "Ошибка аргумента {arg}",
+    "Command `{arg}` not found": "Команда `{arg}` не найдена"
+}
