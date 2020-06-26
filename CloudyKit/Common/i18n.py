@@ -3,15 +3,13 @@ Description: i18n module/ISO 639-2 Code (modified for the uselessbot)
 Version: 0620/prototype
 Author: useless_vevo
 TODO:
-* Migrate to OOP
 * Add file handler (with parameter "auto_reload")
 """
+# Standard libraries
 import os
-import itertools
-
-from CloudyKit.Common.filetools import read_json
 
 # Base tools
+from CloudyKit.Common.filetools import read_json
 from CloudyKit.Common.basetools import get_filename_path
 from CloudyKit.Common.basetools import normalize_module_path
 
@@ -20,22 +18,27 @@ from CloudyKit.Core.manager import Guilds
 from CloudyKit.Core.settings import Global
 
 
-class Localization:
-    def __init__(self):
-        self.translations = {'alias': {}}
-        self.load_aliases({
-            get_filename_path(normalize_module_path(i))
-            for i in (*Global.get('modules_to_load'), 'Bot.bot')
-        })
-        self.load_translations()
+class Locales:
+    translations = {'alias': {}}
 
-    def load_aliases(self, modules):
+    @classmethod
+    def load_aliases(cls, modules=None):
+        if not modules:
+            modules = {
+                get_filename_path(normalize_module_path(m)) for m in (*Global.get('modules_to_load'), 'Bot.bot')
+            }
+        elif isinstance(modules, (list, tuple)):
+            modules = {get_filename_path(normalize_module_path(m)) for m in modules}
+        else:
+            raise TypeError(f'Modules must be list or tuple type. Got {type(modules)}')
+
         for module in modules:
             # Read "aliases.json" file
             data = read_json(os.path.join(module, 'Resources', 'Locales', 'aliases.json'))
-            self.translations['alias'].update(data)
+            cls.translations['alias'].update(data)
 
-    def load_translations(self, locales=None, modules=None):
+    @classmethod
+    def load_translations(cls, locales=None, modules=None):
         if not locales:
             locales = {g.get('locale') for g in Guilds.guilds.values()}
         elif isinstance(locales, (list, tuple)):
@@ -44,23 +47,22 @@ class Localization:
             raise TypeError(f'Locales must be list or tuple type. Got {type(locales)}')
 
         if not modules:
-            modules = {*Global.get('modules_to_load'), 'Bot.bot'}
+            modules = {
+                get_filename_path(normalize_module_path(m)) for m in (*Global.get('modules_to_load'), 'Bot.bot')
+            }
         elif isinstance(modules, (list, tuple)):
-            modules = set(modules)
+            modules = {get_filename_path(normalize_module_path(m)) for m in modules}
         else:
             raise TypeError(f'Modules must be list or tuple type. Got {type(modules)}')
 
         for module in modules:
             for locale in locales:
-                if locale not in self.translations:
-                    self.translations.update({locale: {}})
+                if locale not in cls.translations:
+                    cls.translations.update({locale: {}})
 
-                self.translations[locale].update(
+                cls.translations[locale].update(
                     read_json(os.path.join(module, 'Resources', 'Locales', f'{locale}.json'))
                 )
-
-
-Locales = Localization()
 
 
 def tr(text, ctx=None, emoji=False, emoji_side=0, spaces=3, **kwargs):

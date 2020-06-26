@@ -5,7 +5,6 @@
     ],
     "set_guild_prefix": [
         "prefix",
-        "pref",
         "префикс"
     ],
     "set_presence": [
@@ -52,8 +51,9 @@
         "сервер",
         "гильдия"
     ],
-    "radio-message": [
-        "radio",
-        "радио"
+    "reload_translations": [
+        "rtr",
+        "перевод",
+        "ОбновитьПеревод"
     ]
 }

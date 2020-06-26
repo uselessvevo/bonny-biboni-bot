@@ -8,17 +8,6 @@ import os
 import time
 from pathlib import Path
 
-# Standard libraries for discord
-
-
-def get_relative_path(*path):
-    path = os.path.join(*path)
-    return str(path).replace(os.sep, '/')
-
-
-def get_posix_path(*path):
-    return Path(*path).as_posix()
-
 
 def get_filename_extension(file):
     return Path(file).suffix
@@ -29,7 +18,8 @@ def get_filename_without_extension(file):
 
 
 def get_filename_path(file):
-    return os.path.split(file)[0]
+    parts = Path(file).parts
+    return parts[0] if len(parts) == 1 else os.sep.join(parts[0:-1])
 
 
 def normalize_module_path(path):
@@ -39,7 +29,7 @@ def normalize_module_path(path):
 def touch(path, make_dir=True):
     if not os.path.exists(path):
         folder = os.path.dirname(os.path.abspath(path))
-        if make_dir:
+        if make_dir and not os.path.exists(folder):
             os.makedirs(folder)
 
         with open(path, 'a'):

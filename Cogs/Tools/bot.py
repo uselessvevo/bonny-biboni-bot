@@ -14,6 +14,7 @@ from discord.ext import commands
 from discord.ext.commands import ExtensionError
 
 # i18n module
+from CloudyKit.Common.basetools import timeit
 from CloudyKit.Common.i18n import tr, Locales
 from CloudyKit.Common.i18n import alias
 
@@ -36,7 +37,7 @@ class BotManagement(commands.Cog):
 
         uname = platform.uname()
         embed.description = f'''
-            • :snake: Python - {sys.winver}
+            • :snake: Python - {sys.version.split()[0]}
             • :space_invader: Discord API - {discord.__version__}
             • :pager: {uname.system}
             • :computer: {uname.machine}
@@ -74,26 +75,23 @@ class BotManagement(commands.Cog):
             else:
                 cogs = [f'Cogs.{i}' for i in cogs]
 
+            # At first we need to reload localization files
+            Locales.load_aliases(cogs)
+            Locales.load_translations(modules=cogs)
+            await ctx.send(tr('Updated localization files', ctx, 'bookmark', 1))
+
+            message = ''
             for cog in cogs:
                 if cog in self.bot.extensions:
                     try:
                         self.bot.reload_extension(cog)
-                        await ctx.send(tr(
-                            'Module was rebooted - `{module}`', ctx, 'wrench', 1, module=cog
-                        ))
+                        message += tr('Module was rebooted - `{module}`', ctx, 'wrench', 1, module=cog) + '\n'
                     except ExtensionError:
-                        await ctx.send(tr(
-                            'Failed to reboot module - `{module}`', ctx, 'fire', 1, module=cog
-                        ))
+                        message += tr('Failed to reboot module - `{module}`', ctx, 'fire', 1, module=cog) + '\n'
                 else:
-                    await ctx.send(tr(
-                        'Module doesn\'t exist - `{module}`', ctx, 'warning', 1, module=cog
-                    ))
+                    message += tr('Module doesn\'t exist - `{module}`', ctx, 'warning', 1, module=cog) + '\n'
 
-            # Add guild id check
-            Locales.load_aliases(cogs)
-            Locales.load_translations(modules=cogs)
-            await ctx.send(tr('Updated localization files', ctx, 'bookmark', 1))
+            await ctx.send(message)
 
     @reload_module.error
     async def reload_module_error(self, ctx, error):
@@ -102,6 +100,13 @@ class BotManagement(commands.Cog):
 
         if isinstance(error, commands.BadArgument):
             await ctx.send('Invalid argument')
+
+    @commands.command(aliases=alias('reload_translations'), pass_context=True)
+    @commands.is_owner()
+    async def reload_translations(self, ctx):
+        Locales.load_aliases()
+        Locales.load_translations()
+        await ctx.send(tr('Updated localization files', ctx, 'bookmark', 1))
 
     @commands.command(aliases=alias('set_presence'), pass_context=True)
     @commands.is_owner()
@@ -121,15 +126,42 @@ class BotManagement(commands.Cog):
         await ctx.send(embed=embed)
         await set_presence(self.bot, presence=presence)
 
+    @commands.group(name='picture_atlas', aliases=alias('pictures_atlas'), pass_context=True)
+    async def pictures_atlas(self, ctx):
+        pass
+
+    @pictures_atlas.command(name='picture_atlas_get', aliases=alias('pictures_atlas_get'), pass_context=True)
+    async def get(self, ctx, alias_name):
+        pass
+
+    @pictures_atlas.command(name='picture_atlas_list', aliases=alias('pictures_atlas_list'), pass_context=True)
+    async def list(self, ctx):
+        pass
+
+    @pictures_atlas.command(name='picture_atlas_append', aliases=alias('pictures_atlas_append'), pass_context=True)
+    @commands.is_owner()
+    async def append(self, ctx, link, alias_name):
+        pass
+
+    @pictures_atlas.command(name='picture_atlas_remove', aliases=alias('pictures_atlas_remove'), pass_context=True)
+    @commands.is_owner()
+    async def remove(self, ctx, alias_name):
+        pass
+
+    @pictures_atlas.command(name='picture_atlas_edit', aliases=alias('pictures_atlas_edit'), pass_context=True)
+    @commands.is_owner()
+    async def edit(self, ctx, alias_name):
+        pass
+
     @commands.command(aliases=alias('get_guilds_in_use'), pass_context=True)
     @commands.is_owner()
     async def get_guilds_in_use(self, ctx):
         await ctx.send([self.bot.get_guild(g) for g in Guilds.guilds if g])
 
-    @commands.command(aliases=alias('tr'), pass_context=True)
+    @commands.command(pass_context=True)
     @commands.is_owner()
-    async def tr(self, ctx):
-        await ctx.send([f'{k} - {v}' for (k, v) in Locales.translations["alias"].items()])
+    async def tr(self, ctx, locale=Global.get('default_locale')):
+        await ctx.send([f'`{k} - {v}`' for (k, v) in Locales.translations[locale].items()])
 
 
 def setup(bot):

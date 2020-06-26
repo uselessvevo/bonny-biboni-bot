@@ -1,6 +1,6 @@
 """
 Description: main bot module
-Version: 0520/prototype
+Version: 0620/prototype
 Author: useless_vevo
 TODO: check channels on start
 """
@@ -119,17 +119,35 @@ class Bot(commands.Bot):
             await logs_channel.send(embed=embed)
             await self.process_commands(ctx)
 
-    async def on_message_delete(self, ctx):
-        logs_channel = self.get_channel(Global.get('bot_default_message_logs_channel'))
-        embed = discord.Embed()
-        embed.set_author(
-            name=tr('Delete', ctx),
-            icon_url=ctx.author.avatar_url
-        )
-        embed.colour = discord.Color.from_rgb(245, 124, 110)
-        embed.description = f'{ctx.author.mention} deleted message in #{ctx.guild.name}\n{ctx.content}'
+    async def on_message_edit(self, ctx_before, ctx_after):
+        if not ctx_before.author.bot:
+            logs_channel = self.get_channel(Global.get('bot_default_message_logs_channel'))
+            embed = discord.Embed()
+            embed.set_author(
+                name=tr('Edit', ctx_before),
+                icon_url=ctx_before.author.avatar_url
+            )
+            embed.colour = discord.Color.from_rgb(245, 124, 110)
+            embed.description = (
+                f'{ctx_before.author.mention} edited message in #{ctx_before.guild.name}'
+                f'\nBefore: {ctx_before.content}'
+                f'\nAfter: {ctx_after.content}'
+            )
 
-        await logs_channel.send(embed=embed)
+            await logs_channel.send(embed=embed)
+
+    async def on_message_delete(self, ctx):
+        if not ctx.author.bot:
+            logs_channel = self.get_channel(Global.get('bot_default_message_logs_channel'))
+            embed = discord.Embed()
+            embed.set_author(
+                name=tr('Delete', ctx),
+                icon_url=ctx.author.avatar_url
+            )
+            embed.colour = discord.Color.from_rgb(245, 124, 110)
+            embed.description = f'{ctx.author.mention} deleted message in #{ctx.guild.name}\n{ctx.content}'
+
+            await logs_channel.send(embed=embed)
 
     # Commands
 

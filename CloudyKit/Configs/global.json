@@ -19,6 +19,7 @@
     "modules_to_load": [
         "Cogs.Tools.admin",
         "Cogs.Tools.bot",
-        "Cogs.TextGames.textgames"
+        "Cogs.TextGames.textgames",
+        "Cogs.Fun.fun"
     ]
 }
