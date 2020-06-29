@@ -43,6 +43,8 @@ class Locales:
             locales = {g.get('locale') for g in Guilds.guilds.values()}
         elif isinstance(locales, (list, tuple)):
             locales = set(locales)
+        elif isinstance(locales, str):
+            locales = [locales]
         else:
             raise TypeError(f'Locales must be list or tuple type. Got {type(locales)}')
 

@@ -42,7 +42,7 @@ class Fun(commands.Cog):
         formats = ('png', 'gif', 'jpeg', 'jpg')
 
         async for c in ctx.history(limit=history_limit):
-            if c.attachments:
+            if len(c.attachments) > 0:
                 background_url = c.attachments[0].url
                 background_ext = background_url.split('.')[-1]
                 return background_url if background_ext in formats else None
