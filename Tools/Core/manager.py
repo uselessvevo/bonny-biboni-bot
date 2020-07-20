@@ -72,7 +72,7 @@ class GuildsManager:
         else:
             self.insert_guild(
                 gid=guild_id,
-                locale=Global.get('DefaultLocale'),
+                locale=Global.get('default_locale'),
                 prefix=Global.get('bot_default_prefix')
             )
             return self.get_guild_info(guild_id, param, default)
