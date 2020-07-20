@@ -1,0 +1,32 @@
+{
+    "locale": "rus",
+    "default_locale": "eng",
+    "version": "0620/prototype",
+    "default_guilds_sql_file": "Data/guilds.data",
+    "module": ["Bot.bot", "Bot"],
+    "bot_token": "NDMzMzgzOTM2NDI1NzIxODYx.XwV9BQ.u7Ldtx9UYwdfJtri4FPma2k2eJQ",
+    "bot_default_server": 716921378070069278,
+    "bot_default_message_logs_channel": 717282571842748476,
+    "bot_default_error_logs_channel": 722501774249820212,
+    "bot_default_prefix": "pls ",
+    "bot_presence": 0,
+    "bot_case_sensitive": true,
+    "bot_statuses": [
+        "Hello!  \uD83C\uDFD3",
+        "\"pls\" is standard prefix",
+        "negro \uD83D\uDE4A"
+    ],
+    "locales_to_load": [
+        "Cogs/Tools/admin",
+        "Cogs/Tools/bot",
+        "Cogs/TextGames/textgames",
+        "Cogs/Fun/fun",
+        "Tools/Common/common"
+    ],
+    "modules_to_load": [
+        "Cogs.Tools.admin",
+        "Cogs.Tools.bot",
+        "Cogs.TextGames.textgames",
+        "Cogs.Fun.fun"
+    ]
+}

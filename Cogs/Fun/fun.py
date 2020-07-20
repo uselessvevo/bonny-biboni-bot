@@ -3,25 +3,28 @@ Description: Old fun module. Will be rewritten
 Version: 0620/prototype
 Author: useless_vevo
 """
+# Standard library
 import os
 import hashlib
-import random
-
 import requests
 from io import BytesIO
 
+# Discord
 import discord
 from discord.ext import commands
 
+# Pillow/PIL
 from PIL import Image
 from PIL import ImageFont
 from PIL import ImageDraw
+from wand.color import Color
 
+# Wand
 from wand.image import Image as WImage
-# from wand.display import display
 
-from CloudyKit.Common.i18n import tr
-from CloudyKit.Common.i18n import alias
+# Common
+from Tools.Common.i18n import tr
+from Tools.Common.i18n import alias
 
 
 class Fun(commands.Cog):
@@ -55,14 +58,14 @@ class Fun(commands.Cog):
         return output_file
 
     @staticmethod
-    def hash_filename(file, cut=5, output='hash_%s.jpg'):
+    def hash_filename(file, cut=10, prefix='hash'):
         """
         Args:
             file (str) - filename
             cut (int) - list slice
-            output (str) - output filename
+            prefix (str) - output filename prefix
         """
-        return output % hashlib.sha1(file.encode()).hexdigest()[:cut]
+        return f'{prefix}_{hashlib.sha1(file.encode()).hexdigest()[:cut]}.jpg'
 
     async def blend_images(self, ctx, template, bg_size, bg_coord):
         """
@@ -82,7 +85,7 @@ class Fun(commands.Cog):
 
         if 3000 in background.size:
             await ctx.send(
-                tr('Image is too large ({w}x{h})', ctx=ctx, w=background.size[0], h=background.size[1])
+                tr('Cogs.Fun.Fun.ImageSizeError', ctx, w=background.size[0], h=background.size[1])
             )
         else:
             filepath = f'{self._temp_images_folder}/{template}'
@@ -155,7 +158,38 @@ class Fun(commands.Cog):
         await ctx.send(file=discord.File(image_path))
         os.remove(image_path)
 
-    @commands.command(aliases=alias("minecraft"), pass_context=True)
+    @commands.command(aliases=alias('wand_swirl'), pass_context=True)
+    @commands.cooldown(1, 3)
+    async def wand_swirl(self, ctx, degree=-90):
+        image_path = self.save_image(await self.get_image(ctx))
+
+        with WImage(filename=image_path) as image:
+            image.swirl(degree=degree)
+            image.save(filename=image_path)
+
+        await ctx.send(file=discord.File(image_path))
+        os.remove(image_path)
+
+    @commands.command(aliases=alias('wand_matte'), pass_context=True)
+    @commands.cooldown(1, 3)
+    async def wand_matte(self, ctx):
+        image_path = self.save_image(await self.get_image(ctx))
+
+        with WImage(filename=image_path) as image:
+            image.resize(320, 240)
+            image.matte_color = Color('ORANGE')
+            image.virtual_pixel = 'tile'
+            args = (
+                0, 0, 30, 60, 140, 0, 110, 60,
+                0, 92, 2, 90, 140, 92, 138, 90
+            )
+            image.distort('perspective', args)
+            image.save(filename=image_path)
+
+        await ctx.send(file=discord.File(image_path))
+        os.remove(image_path)
+
+    @commands.command(aliases=alias('minecraft'), pass_context=True)
     @commands.cooldown(1, 3)
     async def minecraft(self, ctx, *text):
         if len(text) == 0:
@@ -257,7 +291,7 @@ class Fun(commands.Cog):
             await ctx.send(file=discord.File(image_path))
             os.remove(image_path)
         else:
-            await ctx.send(tr('Type something', ctx=ctx))
+            await ctx.send(tr('Cogs.Fun.Fun.ImpactMemeEmptyString', ctx))
 
     # Blend image commands
     # Old functions before project rewrite
@@ -278,147 +312,147 @@ class Fun(commands.Cog):
     async def spongebob(self, ctx):
         await self.blend_images(
             ctx=ctx,
-            template="spongebob1.png",
+            template='spongebob1.png',
             bg_size=(399, 299),
             bg_coord=(97, 305)
         )
 
-    @commands.command(aliases=alias("ihadtogrind"), pass_context=True)
+    @commands.command(aliases=alias('ihadtogrind'), pass_context=True)
     @commands.cooldown(1, 3, commands.BucketType.user)
     async def ihadtogrind(self, ctx):
         await self.blend_images(
             ctx=ctx,
-            template="ihadtogrind.png",
+            template='ihadtogrind.png',
             bg_size=(545, 531),
             bg_coord=(15, 64),
         )
 
-    @commands.command(aliases=alias("granpatv"), pass_context=True)
+    @commands.command(aliases=alias('granpatv'), pass_context=True)
     @commands.cooldown(1, 3, commands.BucketType.user)
     async def granpatv(self, ctx):
         await self.blend_images(
             ctx=ctx,
-            template="granpatv.png",
+            template='granpatv.png',
             bg_size=(430, 243),
             bg_coord=(45, 253),
         )
 
-    @commands.command(aliases=alias("mrkrupp"), pass_context=True)
+    @commands.command(aliases=alias('mrkrupp'), pass_context=True)
     @commands.cooldown(1, 3, commands.BucketType.user)
     async def mrkrupp(self, ctx):
         await self.blend_images(
             ctx=ctx,
-            template="mrkrupp.png",
+            template='mrkrupp.png',
             bg_size=(566, 418),
             bg_coord=(0, 0),
         )
 
-    @commands.command(aliases=alias("spore"), pass_context=True)
+    @commands.command(aliases=alias('spore'), pass_context=True)
     @commands.cooldown(1, 3, commands.BucketType.user)
     async def spore(self, ctx):
         await self.blend_images(
             ctx=ctx,
-            template="spore.png",
+            template='spore.png',
             bg_size=(1024, 1024),
             bg_coord=(0, 0),
         )
 
-    @commands.command(aliases=alias("spywow"), pass_context=True)
+    @commands.command(aliases=alias('spywow'), pass_context=True)
     @commands.cooldown(1, 3, commands.BucketType.user)
     async def spywow(self, ctx):
         await self.blend_images(
             ctx=ctx,
-            template="spywow.png",
+            template='spywow.png',
             bg_size=(600, 339),
             bg_coord=(0, 0),
         )
 
-    @commands.command(aliases=alias("thisguy"), pass_context=True)
+    @commands.command(aliases=alias('thisguy'), pass_context=True)
     @commands.cooldown(1, 3, commands.BucketType.user)
     async def thisguy(self, ctx):
         await self.blend_images(
             ctx=ctx,
-            template="thisguy.png",
+            template='thisguy.png',
             bg_size=(520, 451),
             bg_coord=(0, 191),
         )
 
-    @commands.command(aliases=alias("thiswoman"), pass_context=True)
+    @commands.command(aliases=alias('thiswoman'), pass_context=True)
     @commands.cooldown(1, 3, commands.BucketType.user)
     async def thiswoman(self, ctx):
         await self.blend_images(
             ctx=ctx,
-            template="thiswoman.png",
+            template='thiswoman.png',
             bg_size=(964, 467),
             bg_coord=(0, 444),
         )
 
-    @commands.command(aliases=alias("icecream"), pass_context=True)
+    @commands.command(aliases=alias('icecream'), pass_context=True)
     @commands.cooldown(1, 3, commands.BucketType.user)
     async def icecream(self, ctx):
         await self.blend_images(
             ctx=ctx,
-            template="icecream.png",
+            template='icecream.png',
             bg_size=(309, 261),
             bg_coord=(202, 250),
         )
 
-    @commands.command(aliases=alias("obstetrician"), pass_context=True)
+    @commands.command(aliases=alias('obstetrician'), pass_context=True)
     @commands.cooldown(1, 3, commands.BucketType.user)
     async def obstetrician(self, ctx):
         await self.blend_images(
             ctx=ctx,
-            template="obstetrician.png",
+            template='obstetrician.png',
             bg_size=(962, 727),
             bg_coord=(22, 13),
         )
 
-    @commands.command(aliases=alias("anus"), pass_context=True)
+    @commands.command(aliases=alias('anus'), pass_context=True)
     @commands.cooldown(1, 3, commands.BucketType.user)
     async def anus(self, ctx):
         await self.blend_images(
             ctx=ctx,
-            template="anus.png",
+            template='anus.png',
             bg_size=(225, 191),
             bg_coord=(0, 0),
         )
 
-    @commands.command(aliases=alias("dream"), pass_context=True)
+    @commands.command(aliases=alias('dream'), pass_context=True)
     @commands.cooldown(1, 3, commands.BucketType.user)
     async def dream(self, ctx):
         await self.blend_images(
             ctx=ctx,
-            template="dream.png",
+            template='dream.png',
             bg_size=(685, 450),
             bg_coord=(0, 308),
         )
 
-    @commands.command(aliases=alias("nope"), pass_context=True)
+    @commands.command(aliases=alias('nope'), pass_context=True)
     @commands.cooldown(1, 3, commands.BucketType.user)
     async def nope(self, ctx):
         await self.blend_images(
             ctx=ctx,
-            template="nope.png",
+            template='nope.png',
             bg_size=(315, 447),
             bg_coord=(338, 14),
         )
 
-    @commands.command(aliases=alias("heroes"), pass_context=True)
+    @commands.command(aliases=alias('heroes'), pass_context=True)
     @commands.cooldown(1, 3, commands.BucketType.user)
     async def heroes(self, ctx):
         await self.blend_images(
             ctx=ctx,
-            template="heroes.png",
+            template='heroes.png',
             bg_size=(428, 412),
             bg_coord=(0, 0),
         )
 
-    @commands.command(aliases=alias("dickgrow"), pass_context=True)
+    @commands.command(aliases=alias('dickgrow'), pass_context=True)
     @commands.cooldown(1, 3, commands.BucketType.user)
     async def dickgrow(self, ctx):
         await self.blend_images(
             ctx=ctx,
-            template="dickgrow.jpg",
+            template='dickgrow.jpg',
             bg_size=(668, 345),
             bg_coord=(0, 0),
         )

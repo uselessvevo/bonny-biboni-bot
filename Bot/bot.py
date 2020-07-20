@@ -14,12 +14,12 @@ import discord
 from discord.ext import commands
 
 # Common
-from CloudyKit.Common.i18n import tr
-from CloudyKit.Common.discordtools import set_presence
+from Tools.Common.i18n import tr
+from Tools.Common.discordtools import set_presence
 
 # Management
-from CloudyKit.Core.settings import Global
-from CloudyKit.Core.manager import Guilds
+from Tools.Core.settings import Global
+from Tools.Core.manager import Guilds
 
 
 class Bot(commands.Bot):
@@ -62,7 +62,7 @@ class Bot(commands.Bot):
         """ If bot join. Add guild to Guilds table and cached dictionary """
         Guilds.insert_guild(
             gid=guild.id,
-            locale=Global.get('default_locale'),
+            locale=Global.get('DefaultLocale'),
             prefix=Global.get('bot_default_prefix')
         )
 
@@ -99,22 +99,48 @@ class Bot(commands.Bot):
         """ If user leave from the server """
 
     async def on_message(self, ctx: discord.Message):
+        """
+        (AVATAR) [Type of event]
+        User sent message in <#channel.mention>
+
+        [Content title]
+        Content
+
+        [If File title]
+        File URL
+        """
+
         if not ctx.author.bot:
             logs_channel = self.get_channel(Global.get('bot_default_message_logs_channel', None))
 
-            message = f'{ctx.author.mention} in #{ctx.guild.name}' if ctx.guild else f'{ctx.author.mention} in DM'
-            if ctx.content:
-                message += f'\n{tr("Text", ctx)}: {ctx.content}'
-            if ctx.attachments:
-                message += f'\n{tr("File", ctx)}: {ctx.attachments[0].proxy_url}'
-
             embed = discord.Embed()
+            embed.colour = discord.Color.from_rgb(110, 162, 245)
+
             embed.set_author(
-                name=tr('Message', ctx),
+                name=tr('Bot.Message', ctx),
                 icon_url=ctx.author.avatar_url
             )
-            embed.colour = discord.Color.from_rgb(110, 162, 245)
-            embed.description = message
+
+            embed.description = tr(
+                'Bot.EventOccurredIn',
+                ctx=ctx,
+                author=ctx.author.mention,
+                guild=ctx.guild.name if ctx.guild else ctx.author.mention,
+                channel=ctx.channel.mention if ctx.channel else ctx.author.mention
+            )
+
+            if ctx.content:
+                embed.add_field(
+                    name=tr('Bot.Message', ctx),
+                    value=ctx.content,
+                    inline=False
+                )
+            if ctx.attachments:
+                embed.add_field(
+                    name=tr('Bot.File', ctx),
+                    value=ctx.attachments[0].proxy_url,
+                    inline=False
+                )
 
             await logs_channel.send(embed=embed)
             await self.process_commands(ctx)
@@ -122,16 +148,32 @@ class Bot(commands.Bot):
     async def on_message_edit(self, ctx_before, ctx_after):
         if not ctx_before.author.bot:
             logs_channel = self.get_channel(Global.get('bot_default_message_logs_channel'))
+
             embed = discord.Embed()
+            embed.colour = discord.Color.from_rgb(245, 124, 110)
+
             embed.set_author(
-                name=tr('Edit', ctx_before),
+                name=tr('Bot.Edited', ctx_before),
                 icon_url=ctx_before.author.avatar_url
             )
-            embed.colour = discord.Color.from_rgb(245, 124, 110)
-            embed.description = (
-                f'{ctx_before.author.mention} edited message in #{ctx_before.guild.name}'
-                f'\nBefore: {ctx_before.content}'
-                f'\nAfter: {ctx_after.content}'
+
+            embed.description = tr(
+                'Bot.EventOccurredIn',
+                ctx=ctx_before,
+                author=ctx_before.author.mention,
+                guild=ctx_before.guild.name if ctx_before.guild else ctx_before.author.mention,
+                channel=ctx_before.channel.mention if ctx_before.channel else ctx_before.author.mention
+            )
+
+            embed.add_field(
+                name=tr('Before', ctx_before),
+                value=ctx_before.content,
+                inline=False
+            )
+            embed.add_field(
+                name=tr('After', ctx_after),
+                value=ctx_after.content,
+                inline=False
             )
 
             await logs_channel.send(embed=embed)
@@ -139,17 +181,30 @@ class Bot(commands.Bot):
     async def on_message_delete(self, ctx):
         if not ctx.author.bot:
             logs_channel = self.get_channel(Global.get('bot_default_message_logs_channel'))
+
             embed = discord.Embed()
+            embed.colour = discord.Color.from_rgb(245, 124, 110)
+
             embed.set_author(
-                name=tr('Delete', ctx),
+                name=tr('Bot.Deleted', ctx),
                 icon_url=ctx.author.avatar_url
             )
-            embed.colour = discord.Color.from_rgb(245, 124, 110)
-            embed.description = f'{ctx.author.mention} deleted message in #{ctx.guild.name}\n{ctx.content}'
+
+            embed.description = tr(
+                'Bot.EventOccurredIn',
+                ctx=ctx,
+                author=ctx.author.mention,
+                guild=ctx.guild.name if ctx.guild else ctx.author.mention,
+                channel=ctx.channel.mention if ctx.channel else ctx.author.mention
+            )
+
+            embed.add_field(
+                name=tr('Bot.Message', ctx),
+                value=ctx.content,
+                inline=False
+            )
 
             await logs_channel.send(embed=embed)
-
-    # Commands
 
     async def on_command(self, ctx):
         await ctx.trigger_typing()
@@ -160,22 +215,22 @@ class Bot(commands.Bot):
 
         if isinstance(error, commands.CommandOnCooldown):
             member = ctx.message.author.mention
-            message = tr('Please, wait {member}', ctx, member=member)
+            message = tr('Bot.PleaseWait', ctx, member=member)
 
         elif isinstance(error, commands.UserInputError):
-            message = tr('Invalid input in {arg}', ctx, arg=ctx.command)
+            message = tr('Bot.InvalidInput', ctx, arg=ctx.command)
 
         elif isinstance(error, commands.BadArgument):
-            message = tr('Bad command argument in {arg}', arg=ctx.command.content)
+            message = tr('Bot.BadCommandArgument', arg=ctx.command.content)
 
         elif isinstance(error, commands.CommandNotFound):
-            message = tr('Command `{arg}` not found', ctx, arg=ctx.message.content)
+            message = tr('Bot.CommandNotFound', ctx, arg=ctx.message.content)
 
         elif isinstance(error, commands.CommandInvokeError):
-            message = f'{tr("Command invoke error", ctx)}: {error.original}'
+            message = f'{tr("Bot.CommandInvokeError", ctx)}: {error.original}'
 
         elif isinstance(error, UnboundLocalError):
-            message = f'{tr("Local error", ctx)}: {error}'
+            message = f'{tr("Bot.LocalError", ctx)}: {error}'
 
         title = tr('Error', ctx)
         embed_logs = discord.Embed()
@@ -194,18 +249,15 @@ class Bot(commands.Bot):
     # Tasks
 
     async def check_database(self):
-        await self.wait_until_ready()
-        while not self.is_closed():
-            await asyncio.sleep(60)
+        # await self.wait_until_ready()
+        # while not self.is_closed():
+        #     await asyncio.sleep(60)
+        pass
 
     async def on_ready(self):
-        message = 'Login: {}\nID: {}\n'.format(
-            self.user.name,
-            self.user.id
+        self.loop.create_task(
+            set_presence(bot=self, presence=int(Global.get('presence', 0)))
         )
-        print(message)
-
-        self.loop.create_task(set_presence(bot=self, presence=int(Global.get('presence', 0))))
         # self.loop.create_task(self.check_database)
 
         print('Ready')

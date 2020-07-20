@@ -11,12 +11,12 @@ import discord
 from discord.ext import commands
 
 # i18n module
-from CloudyKit.Common.i18n import tr, Locales
-from CloudyKit.Common.i18n import alias
+from Tools.Common.i18n import tr, Locales
+from Tools.Common.i18n import alias
 
 # Management
-from CloudyKit.Core.manager import Guilds
-from CloudyKit.Core.settings import Global
+from Tools.Core.manager import Guilds
+from Tools.Core.settings import Global
 
 
 class Administration(commands.Cog):
@@ -31,7 +31,7 @@ class Administration(commands.Cog):
             prefix += ' '
 
         Guilds.update_guild(ctx.message.guild.id, prefix=prefix)
-        await ctx.send(tr('Done. Prefix is: **{prefix}**', ctx, prefix=prefix))
+        await ctx.send(tr('Cogs.Tools.Admin.PrefixHasBeenSet', ctx, prefix=prefix))
 
     @commands.command(aliases=alias('set_guild_locale'), pass_context=True)
     @commands.has_permissions(administrator=True)
@@ -45,14 +45,14 @@ class Administration(commands.Cog):
         locale = locale.lower()
         if re.match(r'[a-z]{3}', locale):
             if locale == Guilds.get_guild_info(ctx.message.guild.id, 'locale'):
-                await ctx.send(tr('It\'s the same locale', ctx))
+                await ctx.send(tr('Cogs.Tools.Admin.SameLocale', ctx))
             else:
                 Guilds.update_guild(ctx.message.guild.id, locale=locale)
                 Locales.load_translations(locale)
 
-                await ctx.send(tr('Done. Locale is: **{locale}**', ctx, locale=locale))
+                await ctx.send(tr('Cogs.Tools.Admin.LocaleHasBeenSet', ctx, locale=locale))
         else:
-            await ctx.send(tr('Locale format must be look like: lc', ctx))
+            await ctx.send(tr('Cogs.Tools.Admin.LocaleFormatIsIncorrect', ctx))
 
     @commands.command(aliases=alias('set_guild_message_log_channel'), pass_context=True)
     async def set_guild_message_log_channel(self, ctx, channel: int):

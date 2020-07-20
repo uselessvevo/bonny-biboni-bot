@@ -1,14 +1,15 @@
-import importlib, os
+import os
+import importlib
 
-from CloudyKit.Core.settings import Global
-from CloudyKit.Common.i18n import Locales
+from Tools.Core.settings import Global
+from Tools.Common.i18n import Locales
 
 
 def main():
     # Do I need to make "to_check" fields and iter through keys
     # those and keys of global settings?
     if os.name == 'nt' and os.getenv('MAGICK_HOME') is None:
-        raise EnvironmentError('There is no MAGICK! Check you MAGICK_HOME env. variable and Wand.')
+        raise EnvironmentError('ImageMagick env var not found')
     if Global.get('bot_token', None) is None:
         raise Exception('Bot token is empty!')
 

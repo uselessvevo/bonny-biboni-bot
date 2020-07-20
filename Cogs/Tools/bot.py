@@ -14,21 +14,26 @@ from discord.ext import commands
 from discord.ext.commands import ExtensionError
 
 # i18n module
-from CloudyKit.Common.basetools import timeit
-from CloudyKit.Common.i18n import tr, Locales
-from CloudyKit.Common.i18n import alias
+from Tools.Common.i18n import tr
+from Tools.Common.i18n import alias
+from Tools.Common.i18n import Locales
+
+# Discord tools
+from Tools.Common.discordtools import ModifiedHelpCommand
 
 # Base tools
-from CloudyKit.Common.discordtools import set_presence
+from Tools.Common.discordtools import set_presence
 
 # Managment
-from CloudyKit.Core.manager import Guilds
-from CloudyKit.Core.settings import Global
+from Tools.Core.manager import Guilds
+from Tools.Core.settings import Global
 
 
 class BotManagement(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
+        self.bot.help_command = ModifiedHelpCommand()
+        self.bot.help_command.cog = self
 
     @commands.command(aliases=alias('info'), pass_context=True)
     async def info(self, ctx):
@@ -44,7 +49,7 @@ class BotManagement(commands.Cog):
             • :bulb: {uname.processor}
         '''
         embed.set_author(
-            name=tr('The best bot in the world', ctx),
+            name=tr('Cogs.Tools.Bot.BotInfoTitle', ctx),
             icon_url=self.bot.get_user(self.bot.user.id).avatar_url
         )
         await ctx.send(embed=embed)
@@ -53,7 +58,7 @@ class BotManagement(commands.Cog):
     @commands.is_owner()
     async def restart(self, ctx):
         embed = discord.Embed(
-            title=tr('Rebooting', ctx=ctx, emoji='gear'),
+            title=tr('Cogs.Tools.Bot.RebootNotification', ctx=ctx, emoji='gear'),
             color=discord.Color.from_rgb(255, 188, 64),
         )
         subprocess.call([sys.executable, 'Bot/bot.py'])
@@ -62,41 +67,41 @@ class BotManagement(commands.Cog):
     @restart.error
     async def restart_error(self, ctx, error):
         if isinstance(error, commands.NotOwner):
-            await ctx.send(tr('Access denied', ctx=ctx, emoji='alien'))
+            await ctx.send(tr('Cogs.Tools.Admin.AccessDenied', ctx=ctx, emoji='alien'))
 
     @commands.command(aliases=alias('reload_module'), pass_context=True)
     @commands.is_owner()
     async def reload_module(self, ctx, *cogs):
         # "prefix *"             - each module
         # "prefix Module.module" - specific one
-        if cogs:
-            if '*' in cogs:
-                cogs = Global.get('modules_to_load', [])
+        # TODO: add folder (group) reboot: "?rm Tools (will reboot each module)"
+        if not cogs:
+            cogs = Global.get('modules_to_load', [])
+        else:
+            cogs = [f'Cogs.{i}' for i in cogs]
+
+        # At first we need to reload localization files
+        Locales.load_aliases(cogs)
+        Locales.load_translations(module_paths=cogs)
+        await ctx.send(tr('Cogs.Tools.Bot.UpdatedLocalizationFiles', ctx, 'bookmark', 1))
+
+        message = ''
+        for cog in cogs:
+            if cog in self.bot.extensions:
+                try:
+                    self.bot.reload_extension(cog)
+                    message += tr('Cogs.Tools.Bot.ModuleWasRebooted', ctx, 'wrench', 1, module=cog) + '\n'
+                except ExtensionError:
+                    message += tr('Cogs.Tools.Bot.FailedToRebootModule', ctx, 'fire', 1, module=cog) + '\n'
             else:
-                cogs = [f'Cogs.{i}' for i in cogs]
+                message += tr('Cogs.Tools.Bot.ModuleNotFound', ctx, 'warning', 1, module=cog) + '\n'
 
-            # At first we need to reload localization files
-            Locales.load_aliases(cogs)
-            Locales.load_translations(modules=cogs)
-            await ctx.send(tr('Updated localization files', ctx, 'bookmark', 1))
-
-            message = ''
-            for cog in cogs:
-                if cog in self.bot.extensions:
-                    try:
-                        self.bot.reload_extension(cog)
-                        message += tr('Module was rebooted - `{module}`', ctx, 'wrench', 1, module=cog) + '\n'
-                    except ExtensionError:
-                        message += tr('Failed to reboot module - `{module}`', ctx, 'fire', 1, module=cog) + '\n'
-                else:
-                    message += tr('Module doesn\'t exist - `{module}`', ctx, 'warning', 1, module=cog) + '\n'
-
-            await ctx.send(message)
+        await ctx.send(message)
 
     @reload_module.error
     async def reload_module_error(self, ctx, error):
         if isinstance(error, commands.NotOwner):
-            await ctx.send(tr('Access denied', ctx=ctx))
+            await ctx.send(tr('Cogs.Tools.Admin.AccessDenied', ctx))
 
         if isinstance(error, commands.BadArgument):
             await ctx.send('Invalid argument')
@@ -106,7 +111,7 @@ class BotManagement(commands.Cog):
     async def reload_translations(self, ctx):
         Locales.load_aliases()
         Locales.load_translations()
-        await ctx.send(tr('Updated localization files', ctx, 'bookmark', 1))
+        await ctx.send(tr('Cogs.Tools.Bot.UpdatedLocalizationFiles', ctx, 'bookmark', 1))
 
     @commands.command(aliases=alias('set_presence'), pass_context=True)
     @commands.is_owner()
@@ -120,7 +125,7 @@ class BotManagement(commands.Cog):
         )
 
         embed = discord.Embed()
-        embed.title = tr('Status set to **{status_name}**', ctx, status_name=presences[presence][0])
+        embed.title = tr('Cogs.Tools.Bot.StatusHasBeenSet', ctx, status_name=presences[presence][0])
         embed.colour = discord.Color.from_rgb(*presences[presence][1])
 
         await ctx.send(embed=embed)
@@ -130,25 +135,25 @@ class BotManagement(commands.Cog):
     async def pictures_atlas(self, ctx):
         pass
 
-    @pictures_atlas.command(name='picture_atlas_get', aliases=alias('pictures_atlas_get'), pass_context=True)
+    @pictures_atlas.command(name='pictures_atlas_get', aliases=alias('pictures_atlas_get'), pass_context=True)
     async def get(self, ctx, alias_name):
         pass
 
-    @pictures_atlas.command(name='picture_atlas_list', aliases=alias('pictures_atlas_list'), pass_context=True)
+    @pictures_atlas.command(name='pictures_atlas_list', aliases=alias('pictures_atlas_list'), pass_context=True)
     async def list(self, ctx):
         pass
 
-    @pictures_atlas.command(name='picture_atlas_append', aliases=alias('pictures_atlas_append'), pass_context=True)
+    @pictures_atlas.command(name='pictures_atlas_append', aliases=alias('pictures_atlas_append'), pass_context=True)
     @commands.is_owner()
     async def append(self, ctx, link, alias_name):
         pass
 
-    @pictures_atlas.command(name='picture_atlas_remove', aliases=alias('pictures_atlas_remove'), pass_context=True)
+    @pictures_atlas.command(name='pictures_atlas_remove', aliases=alias('pictures_atlas_remove'), pass_context=True)
     @commands.is_owner()
     async def remove(self, ctx, alias_name):
         pass
 
-    @pictures_atlas.command(name='picture_atlas_edit', aliases=alias('pictures_atlas_edit'), pass_context=True)
+    @pictures_atlas.command(name='pictures_atlas_edit', aliases=alias('pictures_atlas_edit'), pass_context=True)
     @commands.is_owner()
     async def edit(self, ctx, alias_name):
         pass
@@ -161,7 +166,7 @@ class BotManagement(commands.Cog):
     @commands.command(pass_context=True)
     @commands.is_owner()
     async def tr(self, ctx, locale=Global.get('default_locale')):
-        await ctx.send([f'`{k} - {v}`' for (k, v) in Locales.translations[locale].items()])
+        await ctx.send('\n'.join(f'`{k} - {v}`' for (k, v) in Locales.translations[locale].items()))
 
 
 def setup(bot):
