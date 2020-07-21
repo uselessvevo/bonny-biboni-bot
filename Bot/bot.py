@@ -62,7 +62,7 @@ class Bot(commands.Bot):
         """ If bot join. Add guild to Guilds table and cached dictionary """
         Guilds.insert_guild(
             gid=guild.id,
-            locale=Global.get('DefaultLocale'),
+            locale=Global.get('default_locale'),
             prefix=Global.get('bot_default_prefix')
         )
 
@@ -126,7 +126,7 @@ class Bot(commands.Bot):
                 ctx=ctx,
                 author=ctx.author.mention,
                 guild=ctx.guild.name if ctx.guild else ctx.author.mention,
-                channel=ctx.channel.mention if ctx.channel else ctx.author.mention
+                channel=ctx.channel.mention if not isinstance(ctx.channel, discord.channel.DMChannel) else ctx.author.mention
             )
 
             if ctx.content:
@@ -162,7 +162,7 @@ class Bot(commands.Bot):
                 ctx=ctx_before,
                 author=ctx_before.author.mention,
                 guild=ctx_before.guild.name if ctx_before.guild else ctx_before.author.mention,
-                channel=ctx_before.channel.mention if ctx_before.channel else ctx_before.author.mention
+                channel=ctx_before.channel.mention if not isinstance(ctx_before.channel, discord.channel.DMChannel) else ctx_before.author.mention
             )
 
             embed.add_field(
@@ -195,7 +195,7 @@ class Bot(commands.Bot):
                 ctx=ctx,
                 author=ctx.author.mention,
                 guild=ctx.guild.name if ctx.guild else ctx.author.mention,
-                channel=ctx.channel.mention if ctx.channel else ctx.author.mention
+                channel=ctx.channel.mention if not isinstance(ctx.channel, discord.channel.DMChannel) else ctx.author.mention
             )
 
             embed.add_field(

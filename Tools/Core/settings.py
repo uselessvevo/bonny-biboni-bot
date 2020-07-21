@@ -9,10 +9,10 @@ from Tools.Common.filetools import read_json
 
 
 def _get_global_settings():
-    """ Read Tools/Configs/global.json """
+    """ Read Tools/Settings/global.json """
     from pathlib import Path
 
-    config_file = f'Tools/Configs/global.json'
+    config_file = f'Settings/global.json'
     if not Path(config_file).exists():
         write_json(config_file, {})
 

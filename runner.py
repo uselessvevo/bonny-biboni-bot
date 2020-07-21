@@ -8,9 +8,9 @@ from Tools.Common.i18n import Locales
 def main():
     # Do I need to make "to_check" fields and iter through keys
     # those and keys of global settings?
-    if os.name == 'nt' and os.getenv('MAGICK_HOME') is None:
+    if os.name == 'nt' and not os.getenv('MAGICK_HOME'):
         raise EnvironmentError('ImageMagick env var not found')
-    if Global.get('bot_token', None) is None:
+    if not Global.get('bot_token', None):
         raise Exception('Bot token is empty!')
 
     Locales.load_aliases()

@@ -1,4 +1,17 @@
 {
+    "text_to_speech": [
+        "tts",
+        "t2s",
+        "твг",
+        "тс",
+        "голос"
+    ],
+    "text_to_speech.list": [
+        "ttslist",
+        "t2slist",
+        "твгсписок",
+        "голоссписок"
+    ],
     "sex": [
         "seks",
         "секс"

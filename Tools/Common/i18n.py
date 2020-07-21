@@ -92,7 +92,7 @@ def tr(text, ctx=None, emoji=False, emoji_side=0, spaces=3, **kwargs):
         locale = Guilds.get_guild_info(ctx.guild.id, 'locale', 'eng')
         text = Locales.translations[locale].get(text, text)
     else:
-        text = Locales.translations[Global.get('DefaultLocale')].get(text, text)
+        text = Locales.translations[Global.get('default_locale')].get(text, text)
     text = text.format(**kwargs)
 
     if isinstance(emoji, str):

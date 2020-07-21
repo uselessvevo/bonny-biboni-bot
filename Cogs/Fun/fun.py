@@ -6,6 +6,8 @@ Author: useless_vevo
 # Standard library
 import os
 import hashlib
+import textwrap
+
 import requests
 from io import BytesIO
 
@@ -25,6 +27,9 @@ from wand.image import Image as WImage
 # Common
 from Tools.Common.i18n import tr
 from Tools.Common.i18n import alias
+
+from ._tools import hash_filename
+from ._mediaconverter import AudioConverter
 
 
 class Fun(commands.Cog):
@@ -51,21 +56,11 @@ class Fun(commands.Cog):
                 return background_url if background_ext in formats else None
 
     def save_image(self, file):
-        output_file = os.path.join(self._temp_images_folder, self.hash_filename(file))
+        output_file = os.path.join(self._temp_images_folder, hash_filename(file))
         response = requests.get(file)
         image = Image.open(BytesIO(response.content))
         image.save(output_file, 'PNG')
         return output_file
-
-    @staticmethod
-    def hash_filename(file, cut=10, prefix='hash'):
-        """
-        Args:
-            file (str) - filename
-            cut (int) - list slice
-            prefix (str) - output filename prefix
-        """
-        return f'{prefix}_{hashlib.sha1(file.encode()).hexdigest()[:cut]}.jpg'
 
     async def blend_images(self, ctx, template, bg_size, bg_coord):
         """
@@ -98,7 +93,44 @@ class Fun(commands.Cog):
             await ctx.send(file=discord.File(filepath))
             os.remove(filepath)
 
-    # Commands
+    # MediaConverter commands
+
+    @commands.command(aliases=alias('text_to_speech'), pass_context=True)
+    @commands.cooldown(2, 5, type=commands.BucketType.user)
+    async def text_to_speech(self, ctx, section: str, *text: str):
+        """
+        Text to speech command.
+        Example:
+            pls <section; f.e: vox> <file1> <file2>
+        Or if files contains more than one word:
+            pls <section; f.e: kingpin> <file name 1>, <file name 2>
+        """
+        text = str(' '.join(text))
+        text = text.split(',') if ',' in text else text.split(' ')
+
+        result = await AudioConverter.text_to_speech(section, *text)
+        if result:
+            await ctx.send(ctx.message.author.mention, file=discord.File(result.get('output')))
+            os.remove(result.get('output'))
+        else:
+            await ctx.send(tr('Cogs.Fun.WrongCategory', ctx))
+
+    @commands.command(aliases=alias('text_to_speech.list'), pass_context=True)
+    @commands.cooldown(2, 5, type=commands.BucketType.user)
+    async def text_to_speech_list(self, ctx, section: str):
+        lines = await AudioConverter.get_alphabet(section)
+        lines = '"{}"'.format('", "'.join(lines.keys()))
+
+        embed = discord.Embed()
+        embed.set_author(name=tr('Cogs.Fun.TextToSpeechList', ctx))
+        await ctx.author.send(embed=embed)
+
+        for line in textwrap.wrap(lines, 500):
+            # await ctx.author.send(line)
+            embed.add_field(name='================', value=line)
+            await ctx.author.send(embed=embed)
+
+    # Wand commands
 
     @commands.command(aliases=alias('jpeg'), pass_context=True)
     @commands.cooldown(2, 3)
@@ -138,22 +170,6 @@ class Fun(commands.Cog):
             rigidity=0
         )
         image.save(filename=image_path)
-
-        """
-            image.liquid_rescale(
-            width=int(image.width * random.uniform(0.5, 1.5)),
-            height=int(image.height * random.uniform(0.5, 1.5)),
-            delta_x=int(random.uniform(0.5, 1.5) * scale) if scale else 1,
-            rigidity=0
-        )
-
-        image.liquid_rescale(
-            width=int(image.width * random.uniform(0.5, 1.5)),
-            height=int(image.height * random.uniform(0.5, 1.5)),
-            delta_x=scale if scale else 2,
-            rigidity=0
-        )
-        """
 
         await ctx.send(file=discord.File(image_path))
         os.remove(image_path)
@@ -209,7 +225,7 @@ class Fun(commands.Cog):
             str(ctx.message.author.name).translate(translate)
         )
 
-        minecraft_image = f'{self._temp_images_folder}/{self.hash_filename("minecraft.png")}'
+        minecraft_image = f'{self._temp_images_folder}/{hash_filename("minecraft.png")}'
         response = requests.get(url)
 
         image = Image.open(BytesIO(response.content))
